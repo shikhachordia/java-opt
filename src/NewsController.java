@@ -32,25 +32,44 @@ public class NewsController implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         try {
+            // CORS preflight
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                addCorsHeaders(exchange);
+                exchange.getResponseHeaders().set("Allow", "GET, OPTIONS");
+                exchange.sendResponseHeaders(HttpURLConnection.HTTP_NO_CONTENT, -1);
+                return;
+            }
+
             if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
-                exchange.getResponseHeaders().set("Allow", "GET");
+                addCorsHeaders(exchange);
+                exchange.getResponseHeaders().set("Allow", "GET, OPTIONS");
                 respond(exchange, HttpURLConnection.HTTP_BAD_METHOD,
                         error("Only GET is supported on /news"));
                 return;
             }
 
             List<News> news = fetcher.fetchTopNews(TOP_NEWS_COUNT);
+            addCorsHeaders(exchange);
             respond(exchange, HttpURLConnection.HTTP_OK, toJson(news));
         } catch (IOException e) {
             // Upstream (Google Finance) is unreachable or misbehaving.
+            addCorsHeaders(exchange);
             respond(exchange, HttpURLConnection.HTTP_BAD_GATEWAY,
                     error("Could not fetch news from Google Finance: " + e.getMessage()));
         } catch (RuntimeException e) {
+            addCorsHeaders(exchange);
             respond(exchange, HttpURLConnection.HTTP_INTERNAL_ERROR,
                     error("Unexpected error: " + e.getMessage()));
         } finally {
             exchange.close();
         }
+    }
+
+    private static void addCorsHeaders(HttpExchange exchange) {
+        exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, OPTIONS");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
+        exchange.getResponseHeaders().set("Access-Control-Max-Age", "3600");
     }
 
     private static String toJson(List<News> news) {
