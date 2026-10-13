@@ -51,6 +51,9 @@ syndicated under different tracking URLs — appears only once:
 - the headline, compared case- and whitespace-insensitively
 - the article URL, compared with the query string and fragment stripped
 
+Headlines are cached in memory for 60 seconds, so a burst of concurrent requests is served from
+one snapshot rather than each triggering its own scrape of Google Finance.
+
 Responses:
 
 | Status | Meaning |
@@ -72,6 +75,30 @@ Java_OPT/
 ├── .gitignore
 └── README.md
 ```
+
+## Concurrency & production tuning
+
+The server is built to absorb high-concurrency traffic safely:
+
+- **Bounded worker pool with backpressure.** Requests are served by a bounded `ThreadPoolExecutor`.
+  When the queue fills during a spike, overflow runs on the dispatch thread (caller-runs), which
+  slows intake instead of dropping requests or growing an unbounded queue toward `OutOfMemoryError`.
+  Worker threads are named (`news-worker-N`) with an uncaught-exception handler for diagnosability.
+- **Single-flight, cached upstream fetch.** Parsed headlines live behind a `volatile` snapshot with
+  a short TTL, so the common request is a lock-free memory read. When the snapshot expires, exactly
+  one thread refreshes it from Google Finance while all others keep serving the last-known
+  snapshot — no thundering herd on the upstream. A failed refresh serves the last good snapshot
+  rather than failing the request.
+- **Graceful shutdown.** On `SIGTERM`/`SIGINT`, the server stops accepting connections, drains
+  in-flight exchanges for a grace period, then shuts the pool down.
+
+Pool sizing is env-overridable (defaults scale to CPU count):
+
+| Variable | Default | Meaning |
+| -------- | ------- | ------- |
+| `WORKER_CORE_THREADS`  | `max(8, cores × 2)`          | Core worker threads |
+| `WORKER_MAX_THREADS`   | `max(core, cores × 8)`      | Max worker threads under load |
+| `WORKER_QUEUE_CAPACITY`| `1024`                      | Bounded request queue depth |
 
 ## Note on the news source
 
