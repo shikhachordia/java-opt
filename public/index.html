@@ -1,0 +1,1035 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Markets Today — Google Finance headlines</title>
+  <meta name="description" content="Unique headlines from Google Finance, paginated with a page size you choose." />
+  <style>
+    :root {
+      --ink: #102030;
+      --muted: #5b6777;
+      --faint: #7a8699;
+      --line: #e5e8ef;
+      --line-strong: #d0d6e3;
+      --paper: #ffffff;
+      --wash: #f2f4f8;
+      --accent: #1a5cff;
+      --accent-pressed: #1448cc;
+      --accent-soft: #e8eeff;
+      --danger-bg: #fff1f1;
+      --danger-line: #e8b4b4;
+      --danger-ink: #7a1f1f;
+      --radius-card: 10px;
+      --radius-btn: 7px;
+    }
+    * { box-sizing: border-box; }
+    html { scrollbar-gutter: stable; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.45;
+    }
+    a { color: inherit; }
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Masthead */
+    .masthead {
+      border-bottom: 1px solid var(--line-strong);
+      background: var(--paper);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .masthead-inner {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 14px 20px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      min-width: 0;
+    }
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--ink);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font: 700 13px/1 "Helvetica Neue", Helvetica, Arial, sans-serif;
+      letter-spacing: -0.02em;
+      flex: none;
+    }
+    .brand-text { min-width: 0; }
+    .brand-title {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 22px;
+      font-weight: 750;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin: 0;
+      white-space: nowrap;
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+      letter-spacing: 0.01em;
+    }
+    .masthead-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: none;
+    }
+    .meta-inline {
+      font-size: 12px;
+      color: var(--faint);
+      text-align: right;
+      line-height: 1.3;
+      min-width: 140px;
+    }
+    .meta-inline strong {
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      font: 600 13px/1 "Helvetica Neue", Helvetica, Arial, sans-serif;
+      letter-spacing: 0.02em;
+      padding: 9px 14px 9px 11px;
+      border-radius: var(--radius-btn);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+    .btn:hover { background: var(--accent-pressed); border-color: var(--accent-pressed); }
+    .btn:active { transform: translateY(0.5px); }
+    .btn:disabled { opacity: 0.62; cursor: wait; transform: none; }
+    .btn svg { width: 14px; height: 14px; display: block; }
+    .btn-ghost {
+      background: var(--paper);
+      border-color: var(--line-strong);
+      color: var(--ink);
+      padding: 8px 12px;
+    }
+    .btn-ghost:hover { background: var(--wash); border-color: var(--line-strong); }
+    .btn-ghost:disabled { cursor: not-allowed; background: var(--paper); }
+    @media (prefers-reduced-motion: no-preference) {
+      .btn svg.spin { animation: spin 0.7s linear infinite; }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Page */
+    .page {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+    }
+    .page-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 18px;
+    }
+    .page-head h1 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 0.95;
+      margin: 0;
+    }
+    .page-head p {
+      margin: 6px 0 0;
+      font-size: 13.5px;
+      color: var(--muted);
+      max-width: 54ch;
+    }
+    .page-kicker {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin-bottom: 6px;
+    }
+    .page-stats {
+      font-size: 12px;
+      color: var(--faint);
+      text-align: right;
+      line-height: 1.5;
+      white-space: nowrap;
+    }
+    .page-stats b { color: var(--muted); font-weight: 650; }
+
+    /* Page-size toolbar */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 12px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      background: var(--wash);
+    }
+    .field {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .num-input {
+      width: 78px;
+      padding: 8px 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-btn);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      background: var(--paper);
+    }
+    .num-input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      border-color: var(--accent);
+    }
+    .toolbar-note {
+      font-size: 12px;
+      color: var(--faint);
+      margin-left: auto;
+      text-align: right;
+    }
+    .toolbar-note b { color: var(--muted); font-weight: 650; }
+
+    /* Pager */
+    .pager {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .pager-status {
+      font-size: 12.5px;
+      color: var(--muted);
+      text-align: center;
+      flex: 1 1 auto;
+    }
+    .pager-status b { color: var(--ink); font-weight: 700; }
+
+    /* Alerts */
+    .alert {
+      border: 1px solid var(--danger-line);
+      background: var(--danger-bg);
+      color: var(--danger-ink);
+      font-size: 13px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    /* List */
+    .list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      overflow: hidden;
+      background: var(--paper);
+    }
+    .item {
+      display: grid;
+      grid-template-columns: 36px 1fr auto;
+      gap: 14px;
+      padding: 16px 16px 15px;
+      border-bottom: 1px solid var(--line);
+      align-items: start;
+    }
+    .item:last-child { border-bottom: none; }
+    .item:hover { background: #fbfdff; }
+    .item-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      background: var(--wash);
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+    .item-main { min-width: 0; }
+    .item-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 650;
+      line-height: 1.35;
+      letter-spacing: -0.015em;
+    }
+    .item-title a {
+      text-decoration: none;
+      color: var(--ink);
+      border-bottom: 1px solid transparent;
+    }
+    .item-title a:hover {
+      color: var(--accent);
+      border-bottom-color: color-mix(in srgb, var(--accent) 28%, transparent);
+    }
+    .item-meta {
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 11.5px;
+      color: var(--faint);
+    }
+    .source {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--wash);
+      border: 1px solid var(--line);
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+    .dot { width: 2px; height: 2px; border-radius: 50%; background: var(--faint); display: inline-block; }
+    .item-action {
+      align-self: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+      padding: 6px 8px;
+      border-radius: 6px;
+    }
+    .item-action:hover { background: var(--accent-soft); }
+    .item-action svg { width: 12px; height: 12px; vertical-align: -1px; margin-left: 3px; }
+
+    /* Skeletons / empty */
+    .skeleton {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      gap: 10px;
+    }
+    .skeleton:last-child { border-bottom: none; }
+    .sk-line, .sk-pill {
+      background: linear-gradient(90deg, var(--wash) 25%, #e9edf5 37%, var(--wash) 63%);
+      background-size: 400% 100%;
+      border-radius: 6px;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .sk-line, .sk-pill { animation: shimmer 1.2s ease-in-out infinite; }
+    }
+    @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+    .sk-line { height: 14px; }
+    .sk-line.short { width: 48%; height: 11px; }
+    .empty {
+      padding: 36px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .empty p { margin: 6px 0 0; font-size: 13px; color: var(--faint); }
+
+    footer {
+      margin-top: 22px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--faint);
+    }
+    footer a { color: var(--muted); }
+
+    /* LeetCode lookup */
+    .lc-section {
+      margin-top: 28px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      background: var(--paper);
+      overflow: hidden;
+    }
+    .lc-head {
+      padding: 18px 18px 0;
+    }
+    .lc-head h2 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin: 4px 0 6px;
+    }
+    .lc-head p {
+      margin: 0;
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .lc-head code {
+      background: var(--wash);
+      border: 1px solid var(--line);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .lc-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .lc-input {
+      flex: 1 1 200px;
+      max-width: 260px;
+      padding: 9px 11px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-btn);
+      font: inherit;
+      font-size: 14px;
+      color: var(--ink);
+      background: var(--paper);
+    }
+    .lc-input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      border-color: var(--accent);
+    }
+    .lc-input:invalid { border-color: #c97a7a; }
+    .lc-status {
+      font-size: 12.5px;
+      color: var(--muted);
+      min-width: 120px;
+    }
+    .lc-status.ok { color: #1a5cff; }
+    .lc-status.err { color: var(--danger-ink); }
+    .lc-result {
+      padding: 18px;
+    }
+    .lc-result-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .lc-result-head h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+    }
+    .lc-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--faint);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      border: 1px solid var(--line);
+      background: var(--wash);
+      color: var(--muted);
+    }
+    .badge.easy { background: #e8f5e9; color: #1b7a2b; border-color: #b7ddb7; }
+    .badge.medium { background: #fff8e1; color: #8a6d00; border-color: #f0d98a; }
+    .badge.hard { background: #fdecea; color: #a11a1a; border-color: #e8b4b4; }
+    .lc-content {
+      font-size: 14px;
+      line-height: 1.62;
+      color: var(--ink);
+    }
+    .lc-content p { margin: 0 0 10px; }
+    .lc-content pre {
+      background: var(--wash);
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+      border-radius: 8px;
+      overflow: auto;
+      font-size: 12.5px;
+      line-height: 1.5;
+      margin: 10px 0;
+    }
+    .lc-content code {
+      background: var(--wash);
+      border: 1px solid var(--line);
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .lc-content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .lc-content ul, .lc-content ol {
+      margin: 8px 0 12px 20px;
+      padding: 0;
+    }
+    .lc-content strong { font-weight: 700; }
+    .lc-actions {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+    .lc-actions a {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .lc-actions a:hover { text-decoration: underline; }
+    .lc-skeleton {
+      padding: 14px 18px;
+    }
+    .lc-skeleton .sk-line { height: 12px; margin-bottom: 8px; }
+
+    @media (max-width: 640px) {
+      .masthead-inner { padding: 12px 14px 10px; }
+      .page { padding: 20px 14px 36px; }
+      .page-head { flex-direction: column; align-items: start; }
+      .page-stats { text-align: left; }
+      .item { grid-template-columns: 28px 1fr; }
+      .item-action { display: none; }
+      .item-num { width: 28px; height: 28px; font-size: 10.5px; }
+      .brand-title { font-size: 19px; }
+      .meta-inline { display: none; }
+      .lc-form { padding: 12px 14px; }
+      .lc-result { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">M</div>
+        <div class="brand-text">
+          <div class="brand-title">Markets Today</div>
+          <div class="brand-sub">Google Finance headlines · live via REST API</div>
+        </div>
+      </div>
+      <div class="masthead-actions">
+        <div class="meta-inline" id="mastheadMeta" aria-live="polite">
+          <div><strong id="countLine">— headlines</strong></div>
+          <div id="timeLine">Awaiting load</div>
+        </div>
+        <button id="refreshBtn" class="btn" type="button" aria-label="Refresh news">
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M13.2 8A5.2 5.2 0 1 1 5.1 4.2" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M13.2 3.2V8H8.4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Refresh</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="page-head">
+      <div>
+        <div class="page-kicker">Top stories — updated on demand</div>
+        <h1>What markets are watching</h1>
+        <p>Unique headlines from Google Finance, paginated. Choose how many you want per page, then step through with Previous and Next — no page reload.</p>
+      </div>
+      <div class="page-stats" aria-live="polite">
+        <div id="statCount"><b>—</b> stories</div>
+        <div id="statSource">Source: Google Finance</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <label class="field" for="pageSizeInput">
+        <span>Headlines per page</span>
+        <input id="pageSizeInput" class="num-input" type="number" min="1" max="50" step="1" value="5"
+               aria-label="Number of headlines to fetch per page" />
+      </label>
+      <button id="applySizeBtn" class="btn btn-ghost" type="button">Apply</button>
+      <span id="rangeLabel" class="toolbar-note" aria-live="polite">Loading…</span>
+    </div>
+
+    <div id="errorBox" class="alert" style="display:none" role="alert"></div>
+
+    <ol id="newsList" class="list" aria-live="polite" aria-busy="false"></ol>
+
+    <nav class="pager" aria-label="Headline pagination">
+      <button id="prevBtn" class="btn btn-ghost" type="button" disabled>← Previous</button>
+      <span class="pager-status" id="pagerStatus">Page <b>1</b></span>
+      <button id="nextBtn" class="btn btn-ghost" type="button" disabled>Next →</button>
+    </nav>
+
+    <section class="lc-section" aria-labelledby="lcHeading">
+      <div class="lc-head">
+        <div class="page-kicker">LeetCode lookup</div>
+        <h2 id="lcHeading">Problem description by number</h2>
+        <p>Enter a LeetCode problem number — e.g. <code>1</code> for Two Sum — to fetch its description live. Powered by <code>GET /leetcode?id=</code>.</p>
+      </div>
+      <form id="lcForm" class="lc-form" onsubmit="return false;">
+        <input id="lcInput" class="lc-input" type="number" min="1" step="1" placeholder="Problem # — e.g., 1" aria-label="LeetCode problem number" required />
+        <button id="lcBtn" class="btn" type="submit" aria-label="Fetch LeetCode problem">
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M7.2 11.2A4 4 0 1 0 7.2 3.2a4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="1.35"/>
+            <path d="M10.2 10.2 13 13" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+          </svg>
+          <span>Fetch</span>
+        </button>
+        <span id="lcStatus" class="lc-status" aria-live="polite"></span>
+      </form>
+      <div id="lcError" class="alert" style="display:none" role="alert"></div>
+      <div id="lcSkeleton" class="lc-skeleton" style="display:none" aria-hidden="true">
+        <div class="sk-line" style="width:62%"></div>
+        <div class="sk-line short"></div>
+        <div class="sk-line" style="width:88%"></div>
+        <div class="sk-line" style="width:76%"></div>
+      </div>
+      <article id="lcResult" class="lc-result" style="display:none">
+        <div class="lc-result-head">
+          <h3 id="lcTitle"></h3>
+          <div id="lcMeta" class="lc-meta"></div>
+        </div>
+        <div id="lcContent" class="lc-content"></div>
+        <div class="lc-actions"><a id="lcLink" href="#" target="_blank" rel="noopener noreferrer">Open on LeetCode →</a></div>
+      </article>
+    </section>
+
+    <footer>
+      <span>Data: <code>GET /news?page=1&amp;pageSize=5</code> &amp; <code>GET /leetcode?id=1</code> on this server (port 9080). CORS enabled.</span>
+      <span><a href="/news?page=1&amp;pageSize=5">View raw JSON</a> · <a href="/leetcode?id=1">LeetCode #1</a> · <span id="footerTime">—</span></span>
+    </footer>
+  </main>
+
+  <script>
+    const listEl = document.getElementById('newsList');
+    const btn = document.getElementById('refreshBtn');
+    const btnIcon = btn.querySelector('svg');
+    const btnLabel = btn.querySelector('span');
+    const errorEl = document.getElementById('errorBox');
+    const countLine = document.getElementById('countLine');
+    const timeLine = document.getElementById('timeLine');
+    const statCount = document.getElementById('statCount');
+    const footerTime = document.getElementById('footerTime');
+    const statSource = document.getElementById('statSource');
+    const pageSizeInput = document.getElementById('pageSizeInput');
+    const applySizeBtn = document.getElementById('applySizeBtn');
+    const rangeLabel = document.getElementById('rangeLabel');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pagerStatus = document.getElementById('pagerStatus');
+
+    const DEFAULT_PAGE_SIZE = 5;
+    const MAX_PAGE_SIZE = 50;   // mirrors NewsController.MAX_PAGE_SIZE
+
+    // Current request state; only updated once a fetch succeeds, so a failed
+    // page change leaves the pager pointing at what is actually on screen.
+    let pageSize = DEFAULT_PAGE_SIZE;
+    let page = 1;
+    let lastResponse = null;
+    let lastFetchedAt = 0;
+
+    /** Reads the page-size box, clamped to what the API accepts. */
+    function readPageSize() {
+      const n = parseInt(pageSizeInput.value, 10);
+      if (isNaN(n) || n < 1) return DEFAULT_PAGE_SIZE;
+      return Math.min(n, MAX_PAGE_SIZE);
+    }
+
+    // ---- Page cache ----
+    // Every /news call re-scrapes Google Finance server-side, so paging back and
+    // forth is expensive for pages we just showed. Cached pages are held as a
+    // single snapshot of the feed: they share one expiry and are dropped together,
+    // so two pages on screen never come from two different versions of the feed.
+    const CACHE_TTL_MS = 2 * 60 * 1000;   // 2 minutes
+    const cache = new Map();              // "page|pageSize" -> { data, at }
+    let cacheStamp = 0;                   // when the current snapshot began; 0 = empty
+
+    function cacheKey(p, size) {
+      return p + '|' + size;
+    }
+
+    function clearCache() {
+      cache.clear();
+      cacheStamp = 0;
+    }
+
+    /** Drops the snapshot once it ages out. Returns true if a live snapshot remains. */
+    function snapshotIsFresh() {
+      if (cacheStamp && Date.now() - cacheStamp > CACHE_TTL_MS) {
+        clearCache();
+      }
+      return cacheStamp !== 0;
+    }
+
+    function cacheGet(p, size) {
+      return snapshotIsFresh() ? cache.get(cacheKey(p, size)) : undefined;
+    }
+
+    function cachePut(p, size, data) {
+      // A different totalCount means the feed moved under us. Start a fresh
+      // snapshot instead of letting the new page sit beside pages of the old feed.
+      const first = cache.values().next();
+      if (!first.done && first.value.data.totalCount !== data.totalCount) {
+        clearCache();
+      }
+      if (!cacheStamp) {
+        cacheStamp = Date.now();
+      }
+      cache.set(cacheKey(p, size), { data: data, at: Date.now() });
+    }
+
+    /** "just now" / "34s ago" / "2m ago" for the cache note. */
+    function agoLabel(at) {
+      const secs = Math.round((Date.now() - at) / 1000);
+      if (secs < 5) return 'just now';
+      if (secs < 60) return secs + 's ago';
+      return Math.round(secs / 60) + 'm ago';
+    }
+
+    function domainOf(url) {
+      try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function setLoading(isLoading) {
+      btn.disabled = isLoading;
+      btnIcon.classList.toggle('spin', isLoading);
+      btnLabel.textContent = isLoading ? 'Refreshing…' : 'Refresh';
+      listEl.setAttribute('aria-busy', String(isLoading));
+      applySizeBtn.disabled = isLoading;
+      if (isLoading) {
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+      }
+    }
+
+    function showSkeleton(rows) {
+      listEl.innerHTML = '';
+      for (let i = 0; i < rows; i++) {
+        const li = document.createElement('li');
+        li.className = 'skeleton';
+        li.innerHTML = '<div class="sk-line" style="width:' + (76 + Math.random()*18) + '%"></div><div class="sk-line short"></div>';
+        listEl.appendChild(li);
+      }
+    }
+
+    function render(data) {
+      const items = (data && Array.isArray(data.news)) ? data.news : [];
+      const size = data.pageSize || pageSize;
+      const offset = ((data.page || 1) - 1) * size;
+      statSource.textContent = 'Source: ' + (data.source || 'Google Finance');
+      if (!items.length) {
+        listEl.innerHTML = (data.totalCount > 0)
+          ? '<li class="empty"><strong>Nothing on this page</strong><p>Only ' + data.totalCount + ' headline' + (data.totalCount === 1 ? ' is' : 's are') + ' available. Go back to an earlier page.</p></li>'
+          : '<li class="empty"><strong>No headlines right now</strong><p>Google Finance returned an empty list. Try Refresh in a moment.</p></li>';
+        return;
+      }
+      listEl.innerHTML = '';
+      items.forEach((n, idx) => {
+        const li = document.createElement('li');
+        li.className = 'item';
+        const domain = domainOf(n.link);
+        const title = escapeHtml(n.title);
+        const href = escapeHtml(n.link);
+        const d = escapeHtml(domain);
+        li.innerHTML =
+          '<div class="item-num">' + (offset + idx + 1) + '</div>' +
+          '<div class="item-main">' +
+            '<h2 class="item-title"><a href="' + href + '" target="_blank" rel="noopener noreferrer">' + title + '</a></h2>' +
+            '<div class="item-meta">' +
+              (d ? '<span class="source">' + d + '</span><span class="dot" aria-hidden="true"></span>' : '') +
+              '<span>Google Finance</span>' +
+            '</div>' +
+          '</div>' +
+          '<a class="item-action" href="' + href + '" target="_blank" rel="noopener noreferrer">Open<svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4.5 3.5h4v4M4.2 7.8L9 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
+        listEl.appendChild(li);
+      });
+    }
+
+    function setMeta(data, fetchedAt) {
+      const n = (data && typeof data.count === 'number') ? data.count : (data && data.news ? data.news.length : 0);
+      const total = (data && typeof data.totalCount === 'number') ? data.totalCount : n;
+      // Timestamps reflect when the data was fetched, not when it was rendered,
+      // so a cache hit does not claim to be fresher than it is.
+      const now = new Date(fetchedAt || Date.now());
+      const t = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const d = now.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+      countLine.textContent = n + ' of ' + total + ' headline' + (total === 1 ? '' : 's');
+      timeLine.textContent = d + ' · ' + t;
+      statCount.innerHTML = '<b>' + total + '</b> stor' + (total === 1 ? 'y' : 'ies') + ' available';
+      footerTime.textContent = 'Updated ' + t;
+    }
+
+    /** Syncs the pager buttons, page counter and "showing x–y of z" note to a response. */
+    function setPager(data, fetchedAt) {
+      const size = data.pageSize || pageSize;
+      const current = data.page || 1;
+      const total = (typeof data.totalCount === 'number') ? data.totalCount : 0;
+      const totalPages = (typeof data.totalPages === 'number') ? data.totalPages : 1;
+      const shown = (data.news || []).length;
+      const from = shown ? (current - 1) * size + 1 : 0;
+      const to = (current - 1) * size + shown;
+
+      prevBtn.disabled = !data.hasPrev;
+      nextBtn.disabled = !data.hasNext;
+      pagerStatus.innerHTML = 'Page <b>' + current + '</b> of <b>' + Math.max(totalPages, 1) + '</b>';
+      const note = fetchedAt ? ' · fetched ' + agoLabel(fetchedAt) : '';
+      rangeLabel.innerHTML = (shown
+        ? 'Showing <b>' + from + '–' + to + '</b> of <b>' + total + '</b> headlines'
+        : 'No headlines on this page of <b>' + total + '</b>') + note;
+    }
+
+    /**
+     * Shows a page. Served from the snapshot cache when possible; `force` (the
+     * Refresh button) always goes to the network and starts a new snapshot.
+     */
+    async function fetchNews(requestedPage, force) {
+      const wantPage = Math.max(1, requestedPage || 1);
+      const wantSize = readPageSize();
+      pageSizeInput.value = wantSize;
+
+      if (force) {
+        clearCache();
+      } else {
+        const hit = cacheGet(wantPage, wantSize);
+        if (hit) {
+          page = hit.data.page || wantPage;
+          pageSize = hit.data.pageSize || wantSize;
+          lastResponse = hit.data;
+          lastFetchedAt = hit.at;
+          errorEl.style.display = 'none';
+          errorEl.textContent = '';
+          render(hit.data);          // no skeleton, no request — straight to the list
+          setMeta(hit.data, hit.at);
+          setPager(hit.data, hit.at);
+          return;
+        }
+      }
+
+      setLoading(true);
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+      showSkeleton(wantSize);
+      try {
+        const url = '/news?page=' + wantPage + '&pageSize=' + wantSize;
+        const res = await fetch(url, { headers: { Accept: 'application/json' }, cache: 'no-store' });
+        if (!res.ok) {
+          let detail = res.statusText;
+          try { const j = await res.json(); if (j && j.error) detail = j.error; } catch {}
+          throw new Error(detail + ' (' + res.status + ')');
+        }
+        const data = await res.json();
+        page = data.page || wantPage;
+        pageSize = data.pageSize || wantSize;
+        lastResponse = data;
+        lastFetchedAt = Date.now();
+        cachePut(page, pageSize, data);
+        render(data);
+        setMeta(data, lastFetchedAt);
+        setPager(data, lastFetchedAt);
+      } catch (e) {
+        const msg = (e && e.message) ? e.message : String(e);
+        errorEl.textContent = 'Could not refresh headlines: ' + msg;
+        errorEl.style.display = 'block';
+        listEl.innerHTML = '<li class="empty"><strong>Unable to load</strong><p>Check that the API is reachable and try Refresh.</p></li>';
+        // Restore the pager from the last good response so navigation stays usable.
+        if (lastResponse) setPager(lastResponse, lastFetchedAt);
+        rangeLabel.textContent = 'Load failed';
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    btn.addEventListener('click', () => fetchNews(page, true));  // Refresh always re-fetches
+    applySizeBtn.addEventListener('click', () => fetchNews(1));  // a new size restarts at page 1
+    pageSizeInput.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        fetchNews(1);
+      }
+    });
+    prevBtn.addEventListener('click', () => fetchNews(page - 1));
+    nextBtn.addEventListener('click', () => fetchNews(page + 1));
+    fetchNews(1);
+
+    // ---- LeetCode lookup ----
+    const lcForm = document.getElementById('lcForm');
+    const lcInput = document.getElementById('lcInput');
+    const lcBtn = document.getElementById('lcBtn');
+    const lcBtnLabel = lcBtn.querySelector('span');
+    const lcBtnIcon = lcBtn.querySelector('svg');
+    const lcStatus = document.getElementById('lcStatus');
+    const lcError = document.getElementById('lcError');
+    const lcSkeleton = document.getElementById('lcSkeleton');
+    const lcResult = document.getElementById('lcResult');
+    const lcTitle = document.getElementById('lcTitle');
+    const lcMeta = document.getElementById('lcMeta');
+    const lcContent = document.getElementById('lcContent');
+    const lcLink = document.getElementById('lcLink');
+
+    function setLcLoading(isLoading, text) {
+      lcBtn.disabled = isLoading;
+      lcBtnLabel.textContent = isLoading ? 'Fetching…' : 'Fetch';
+      if (lcBtnIcon) lcBtnIcon.classList.toggle('spin', isLoading);
+      if (isLoading) {
+        lcStatus.textContent = text || 'Fetching from LeetCode…';
+        lcStatus.className = 'lc-status';
+      } else if (text) {
+        // Only overwrite status if caller passes explicit text (e.g., error duration)
+        lcStatus.textContent = text;
+      }
+      lcSkeleton.style.display = isLoading ? 'block' : 'none';
+      if (isLoading) {
+        lcError.style.display = 'none';
+        lcError.textContent = '';
+      }
+    }
+
+    function difficultyBadge(diff) {
+      const d = String(diff || '').toLowerCase();
+      if (d === 'easy') return '<span class="badge easy">Easy</span>';
+      if (d === 'medium') return '<span class="badge medium">Medium</span>';
+      if (d === 'hard') return '<span class="badge hard">Hard</span>';
+      if (d) return '<span class="badge">' + escapeHtml(diff) + '</span>';
+      return '';
+    }
+
+    function renderLeetCode(data) {
+      const title = data.title || ('Problem #' + escapeHtml(data.frontendId || ''));
+      lcTitle.textContent = '#' + data.frontendId + ' · ' + title;
+      // meta: difficulty + slug + id
+      lcMeta.innerHTML = difficultyBadge(data.difficulty)
+        + '<span>' + escapeHtml(data.titleSlug || '') + '</span>'
+        + '<span class="dot" aria-hidden="true"></span><span>#' + escapeHtml(data.frontendId) + '</span>';
+      lcContent.innerHTML = data.content || '<p>No description available.</p>';
+      lcLink.href = data.url || ('https://leetcode.com/problems/' + encodeURIComponent(data.titleSlug || '') + '/');
+      lcResult.style.display = 'block';
+      lcStatus.textContent = 'Loaded #' + data.frontendId + ' · ' + title;
+      lcStatus.className = 'lc-status ok';
+    }
+
+    function profLog(msg) {
+      const ts = new Date().toISOString();
+      console.log('[LeetCode][PROF] ' + ts + ' ' + msg);
+    }
+
+    async function fetchLeetCode(num) {
+      const id = String(num).trim();
+      if (!id || isNaN(Number(id)) || Number(id) < 1) {
+        lcError.textContent = 'Enter a valid problem number (e.g., 1).';
+        lcError.style.display = 'block';
+        lcResult.style.display = 'none';
+        lcStatus.textContent = '';
+        profLog('frontend validation failed id=' + id);
+        return;
+      }
+      const t0 = performance.now();
+      profLog('frontend fetch start id=' + id);
+      setLcLoading(true);
+      lcResult.style.display = 'none';
+      // mark for browser Performance timeline
+      if (window.performance && performance.mark) performance.mark('lc-fetch-start-' + id);
+      try {
+        const res = await fetch('/leetcode?id=' + encodeURIComponent(id), { headers: { Accept: 'application/json' }, cache: 'no-store' });
+        const fetchMs = (performance.now() - t0).toFixed(1);
+        profLog('frontend fetch HTTP id=' + id + ' status=' + res.status + ' fetchMs=' + fetchMs);
+        if (!res.ok) {
+          let detail = res.statusText;
+          try { const j = await res.json(); if (j && j.error) detail = j.error; } catch {}
+          throw new Error(detail + ' (' + res.status + ')');
+        }
+        const tParse0 = performance.now();
+        const data = await res.json();
+        const parseMs = (performance.now() - tParse0).toFixed(1);
+        profLog('frontend parse json id=' + id + ' parseMs=' + parseMs);
+        const tRender0 = performance.now();
+        renderLeetCode(data);
+        const renderMs = (performance.now() - tRender0).toFixed(1);
+        const totalMs = (performance.now() - t0).toFixed(1);
+        profLog('frontend success id=' + id + ' title="' + (data.title || '') + '" difficulty=' + (data.difficulty || '') + ' totalMs=' + totalMs + ' (fetch ' + fetchMs + 'ms parse ' + parseMs + 'ms render ' + renderMs + 'ms)');
+        // Show timing in status bar for quick profiling without opening console
+        lcStatus.textContent = 'Loaded #' + data.frontendId + ' · ' + (data.title || '') + ' — ' + totalMs + 'ms';
+        if (window.performance && performance.mark) {
+          performance.mark('lc-fetch-end-' + id);
+          try { performance.measure('lc-fetch-' + id, 'lc-fetch-start-' + id, 'lc-fetch-end-' + id); } catch {}
+          const m = performance.getEntriesByName('lc-fetch-' + id).pop();
+          if (m) profLog('frontend Performance.measure id=' + id + ' duration=' + m.duration.toFixed(1) + 'ms');
+        }
+      } catch (e) {
+        const totalMs = (performance.now() - t0).toFixed(1);
+        const msg = (e && e.message) ? e.message : String(e);
+        lcError.textContent = 'Could not fetch LeetCode #' + id + ': ' + msg;
+        lcError.style.display = 'block';
+        lcStatus.textContent = 'Failed after ' + totalMs + 'ms';
+        lcStatus.className = 'lc-status err';
+        profLog('frontend error id=' + id + ' after ' + totalMs + 'ms err=' + msg);
+      } finally {
+        setLcLoading(false);
+      }
+    }
+
+    lcForm.addEventListener('submit', function(ev) {
+      ev.preventDefault();
+      fetchLeetCode(lcInput.value);
+    });
+    // Allow quick demo: prefill 1 but do not auto-fetch until user action
+    lcInput.value = '1';
+  </script>
+</body>
+</html>

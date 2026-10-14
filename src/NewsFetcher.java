@@ -69,6 +69,18 @@ public class NewsFetcher {
     }
 
     /**
+     * Downloads Google Finance and returns every unique headline the page carries, in the order
+     * Google ranks them. Callers that paginate need the full list to know how many pages exist;
+     * the page is downloaded and parsed in one pass either way, so this costs no more than
+     * {@link #fetchTopNews(int)}.
+     *
+     * @throws IOException if Google Finance cannot be reached or returns a non-200 status
+     */
+    public List<News> fetchAllNews() throws IOException {
+        return parseNews(download(), Integer.MAX_VALUE);
+    }
+
+    /**
      * Extracts unique headlines from an already-downloaded Google Finance page.
      */
     List<News> parseNews(String html, int limit) {
